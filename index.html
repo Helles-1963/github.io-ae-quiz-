@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AE-Quiz – Handbuch AE V2.5 (80 Fragen)</title>
+  <style>
+    :root{--bg:#0b1220;--card:#111a2e;--text:#eaf0ff;--muted:rgba(234,240,255,.72);--border:rgba(255,255,255,.14);--shadow:0 12px 30px rgba(0,0,0,.35);--good:#34d399;--bad:#fb7185}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui;background:var(--bg);color:var(--text);display:flex;justify-content:center;padding:20px}
+    .app{max-width:980px;width:100%;background:linear-gradient(180deg,rgba(255,255,255,.05),transparent 30%),var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:var(--shadow)}
+    h1{margin:0 0 6px;font-size:20px}
+    p{margin:6px 0;color:var(--muted);line-height:1.4}
+    .panel{border:1px solid var(--border);border-radius:16px;padding:14px;background:rgba(0,0,0,.10)}
+    .grid{display:grid;grid-template-columns:1.15fr .85fr;gap:12px}
+    @media (max-width:900px){.grid{grid-template-columns:1fr}}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .pill{font-size:12px;padding:7px 10px;border-radius:999px;border:1px solid var(--border);background:rgba(0,0,0,.12)}
+    select{background:#0f172a;color:var(--text);border:1px solid var(--border);border-radius:12px;padding:10px 12px;font-weight:700}
+    button{padding:10px 14px;border-radius:14px;border:1px solid var(--border);background:#0f172a;color:var(--text);font-weight:700;cursor:pointer}
+    button.primary{background:linear-gradient(90deg,rgba(94,234,212,.22),rgba(96,165,250,.18));border-color:rgba(94,234,212,.35)}
+    button.danger{background:rgba(251,113,133,.12);border-color:rgba(251,113,133,.35)}
+    button:disabled{opacity:.55;cursor:not-allowed}
+    .hidden{display:none}
+    .opt{border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:12px;margin:8px 0;cursor:pointer;background:rgba(0,0,0,.12)}
+    .opt:hover{background:rgba(255,255,255,.06)}
+    .opt.disabled{opacity:.6;cursor:not-allowed}
+    .fb{margin-top:12px;padding:12px;border-radius:14px;border:1px solid var(--border);display:none;line-height:1.4;background:rgba(0,0,0,.12)}
+    .fb.good{border-color:rgba(52,211,153,.55);background:rgba(52,211,153,.08)}
+    .fb.bad{border-color:rgba(251,113,133,.55);background:rgba(251,113,133,.08)}
+    .small{font-size:12px;color:rgba(234,240,255,.68)}
+    .item{border:1px solid var(--border);border-radius:14px;padding:10px;margin:10px 0;background:rgba(0,0,0,.10)}
+    .ok{color:var(--good);font-weight:800} .no{color:var(--bad);font-weight:800}
+    label{display:flex;gap:8px;align-items:center;color:var(--muted);font-size:13px}
+    input[type="checkbox"], input[type="radio"]{transform:translateY(1px)}
+  
+.pill.chapter {
+  background: rgba(96, 165, 250, 0.22);
+  border-color: rgba(96, 165, 250, 0.55);
+  color: #eaf0ff;
+  font-weight: 800;
+  font-size: 13px;
+}
+.pill.chapter.review {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 12px;
+}
+</style>
+</head>
+<body>
+  <div class="app">
+    <h1>🧠 AE‑Quiz – Handbuch Asset Explorer V2.5 (80 Fragen)</h1>
+    <p class="small">Quelle: <b>Handbuch AE V2.5</b> (20.03.2026). Lern‑ & Prüfungsmodus, adaptiv, Statistik. <em>(Bilddarstellung in interner Umgebung deaktiviert)</em></p>
+
+    <section id="screenStart" class="panel">
+      <div class="grid">
+        <div class="panel">
+          <div class="row">
+            <span class="pill">Kapitel</span>
+            <select id="chapterSelect"></select>
+          </div>
+          <p class="small" id="chapterInfo"></p>
+
+          <div class="row" style="margin-top:10px">
+            <span class="pill">Fragenanzahl</span>
+            <button class="primary" onclick="startGame(10)">10</button>
+            <button class="primary" onclick="startGame(15)">15</button>
+            <button class="primary" onclick="startGame(20)">20</button>
+          </div>
+
+          <div class="row" style="margin-top:10px">
+            <span class="pill">Modus</span>
+            <label><input type="radio" name="mode" value="learn" checked> Lernmodus</label>
+            <label><input type="radio" name="mode" value="exam"> Prüfungsmodus</label>
+          </div>
+
+          <div class="row" style="margin-top:8px">
+            <label><input type="checkbox" id="adaptive" checked> Adaptiv (Fehler häufiger)</label>
+            <label><input type="checkbox" id="showChapter" checked> Kapitel anzeigen</label>
+          </div>
+
+          <div class="row" style="margin-top:10px">
+            <button onclick="resetSession()">Session zurücksetzen</button>
+            <button class="danger" onclick="resetAllStats()">Gesamtstatistik löschen (Kapitel)</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <p class="small">Gesamt‑Statistik (pro Kapitel)</p>
+          <div class="row">
+            <span class="pill">✅ richtig: <b id="gCorrect">0</b></span>
+            <span class="pill">❌ falsch: <b id="gWrong">0</b></span>
+            <span class="pill">🔥 beste Serie: <b id="gBest">0</b></span>
+          </div>
+          <div class="row" style="margin-top:10px">
+            <span class="pill">🎮 Sessions: <b id="gSessions">0</b></span>
+            <span class="pill">🎯 letztes Ergebnis: <b id="gLast">–</b></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="screenQuiz" class="panel hidden" style="margin-top:12px">
+      <div class="row" style="justify-content:space-between">
+        <div class="row">
+          <span class="pill" id="progress">Frage –</span>
+          <span class="pill chapter" id="pChapter">Kapitel: –</span>
+        </div>
+        <div class="row">
+          <span class="pill">✅ <b id="sCorrect">0</b></span>
+          <span class="pill">❌ <b id="sWrong">0</b></span>
+          <span class="pill">🔥 <b id="sStreak">0</b></span>
+        </div>
+      </div>
+
+      <div id="question" style="margin-top:10px"></div>
+      <div id="options"></div>
+      <div id="feedback" class="fb"></div>
+
+      <div class="row" style="margin-top:12px">
+        <button id="btnNext" class="primary" disabled>Nächste Frage</button>
+        <button onclick="endGame(true)">Spiel beenden</button>
+        
+      </div>
+      <p class="small" id="modeHint" style="margin-top:10px"></p>
+    </section>
+
+    <section id="screenEnd" class="panel hidden" style="margin-top:12px">
+      <h2 style="margin:0 0 8px">🎉 Geschafft!</h2>
+      <p id="summary" style="margin:6px 0"></p>
+      <div class="row" style="justify-content:center;margin-top:10px">
+        <button class="primary" onclick="backToStart()">Neues Spiel</button>
+</div>
+      <div id="review"></div>
+    </section>
+
+  </div>
+
+<script>
+const BANK = [{"id": "iba_pref", "chapter": "3 iBASync", "q": "Welches Tool ist laut Handbuch das bevorzugte Tool zum Upload von Versorgungsdateien in den Asset Explorer?", "options": ["Manueller Upload im Asset Explorer", "iBASync", "Findus"], "a": 1, "exp": "Im Handbuch steht, dass iBASync das bevorzugte Tool zum Upload von Versorgungsdateien ist; manueller Upload nur in Notfällen."}, {"id": "iba_auto_install", "chapter": "3 iBASync", "q": "Wie wird iBASync für Techniker/innen bereitgestellt, die Plan D100 und/oder SintesoWorks nutzen?", "options": ["Wird zentral automatisch installiert und gestartet", "Muss immer manuell installiert werden", "Ist optional und darf nur selten genutzt werden"], "a": 0, "exp": "Laut Handbuch wird iBASync von zentraler Stelle automatisch installiert und gestartet und ist verpflichtend, wenn Plan D100/SintesoWorks genutzt werden."}, {"id": "iba_first_run", "chapter": "3 iBASync", "q": "Was macht iBASync beim ersten Aufruf laut Handbuch?", "options": ["Legt Ordner für den Sync-Prozess auf Laufwerk C an", "Ersetzt Plan D100 vollständig", "Aktiviert Findus-Zugriff ohne Berechtigung"], "a": 0, "exp": "Beim ersten Aufruf installiert iBASync Ordnerstrukturen auf Laufwerk C für den Synchronisationsprozess."}, {"id": "iba_mfa", "chapter": "3 iBASync", "q": "Welches Sicherheitsverfahren nutzt iBASync laut Handbuch?", "options": ["Microsoft Authentifizierung mit Multi-Faktor-Authentifizierung (MFA)", "Nur Benutzername/Passwort ohne MFA", "Lokale Windows-Anmeldung ohne Internet"], "a": 0, "exp": "iBASync nutzt Microsoft Authentifizierung inklusive MFA (z. B. Smart Card/PKI oder Microsoft Authenticator)."}, {"id": "iba_login_error", "chapter": "3 iBASync", "q": "Was empfiehlt das Handbuch, wenn während der Anmeldung Fehlermeldungen auftreten?", "options": ["iBASync neu starten", "PC komplett neu installieren", "Nur manuell im Asset Explorer hochladen"], "a": 0, "exp": "Im Abschnitt „Allgemeine Infos“ steht: Bei Fehlermeldungen während der Anmeldung iBASync neu starten."}, {"id": "iba_offline", "chapter": "3 iBASync", "q": "Was gilt im Offlinemodus laut Handbuch?", "options": ["Synchronisation kann über Plan D100 oder SintesoWorks angestoßen werden; Datei wird später synchronisiert", "Synchronisation ist ohne Internet grundsätzlich unmöglich", "Man muss zwingend per E-Mail an PIT senden"], "a": 0, "exp": "Im Offlinemodus kann die Synchronisation über die Tools angestoßen werden; die Datei liegt im Ordner iBA_Reports bereit und wird synchronisiert, sobald Verbindung besteht."}, {"id": "iba_ready_versions", "chapter": "3 iBASync", "q": "Ab welchen Versionen sind die Tools „iBASync-Ready“ laut Handbuch?", "options": ["Plan D100 ab V9.4 und SintesoWorks ab MP7", "Plan D100 ab V8.0 und SintesoWorks ab MP6", "Plan D100 ab V10.0 und SintesoWorks ab MP8"], "a": 0, "exp": "Im Handbuch: Plan D100 ab V9.4 und SintesoWorks ab MP7 sind „iBASync-Ready“."}, {"id": "iba_interval", "chapter": "3 iBASync", "q": "In welchem Intervall synchronisiert iBASync die Dateien (wenn alle Regeln eingehalten werden)?", "options": ["Alle 5 Minuten", "Alle 30 Sekunden", "Einmal pro Stunde"], "a": 0, "exp": "Im Abschnitt 3.5 steht ein Synchronisationsintervall von 5 Minuten."}, {"id": "iba_sent_folder", "chapter": "3 iBASync", "q": "Wohin werden Dateien verschoben, wenn die Synchronisation erfolgreich war?", "options": ["In iBA_Reports ⇒ sent", "In iBA_Reports ⇒ failed", "In den Papierkorb"], "a": 0, "exp": "Im Handbuch: Bei erfolgreicher Synchronisation landen Dateien im iBASync-Ordner iBA_Reports ⇒ sent."}, {"id": "iba_failed_folder", "chapter": "3 iBASync", "q": "Wo landen nicht synchronisierte Dateien laut Handbuch?", "options": ["iBA_Reports ⇒ failed", "iBA_Reports ⇒ sent", "Direkt im Asset Explorer als Draft"], "a": 0, "exp": "Nicht synchronisierte Dateien landen im iBASync-Ordner iBA_Reports ⇒ failed."}, {"id": "iba_config_change", "chapter": "3 iBASync", "q": "Was gilt für Einstellungen im iBASync-Fenster „Konfigurieren“ (Deutschland)?", "options": ["An den Einstellungen darf nichts geändert werden", "URL und Variablen müssen manuell gepflegt werden", "Man soll dort den Offline-Modus deaktivieren"], "a": 0, "exp": "Das Handbuch betont: Für Deutschland ist die Einrichtung automatisiert, daher darf an den Einstellungen nichts geändert werden."}, {"id": "iba_info_tab", "chapter": "3 iBASync", "q": "Wofür ist der „Info-Tab“ in iBASync laut Handbuch gedacht?", "options": ["Informationen zur SW-Version und Systemlogs", "Anlegen der Namenskonvention", "Ändern der Ordnerstruktur"], "a": 0, "exp": "Der Info-Tab enthält Informationen zur SW-Version von iBASync und Möglichkeiten, Aktivitäten über Systemlogs zu verfolgen."}, {"id": "rule_no_rules", "chapter": "3.6.1 Synchronisation (Regeln)", "q": "Welche Kernaussage stellt das Handbuch zur Synchronisation heraus?", "options": ["Ohne Regelbeachtung keine Synchronisation", "iBASync synchronisiert immer automatisch", "Regeln gelten nur für SIGMASYS"], "a": 0, "exp": "Im Handbuch steht explizit: „Ohne Regelbeachtung keine Synchronisation!“"}, {"id": "name_structure", "chapter": "3.6.1 Synchronisation (Regeln)", "q": "Welche Struktur hat die Namenskonvention laut Handbuch?", "options": ["DE-_Niederlassung_Systemkennzeichen_Equipmentnummer_Kundentext (max. 26 Zeichen)", "System_Equipment_Kunde (max. 50 Zeichen)", "Kunde_Niederlassung_System"], "a": 0, "exp": "Die Namenskonvention wird als DE-_Niederlassung_Systemkennzeichen_Equipmentnummer_Kundentext (max. 26 Zeichen) beschrieben."}, {"id": "name_syskey_len", "chapter": "3.6.1 Synchronisation (Regeln)", "q": "Wie viele Zeichen haben die Systemkennzeichen laut Handbuch?", "options": ["6", "4", "8"], "a": 0, "exp": "Systemkennzeichen bestehen international standardisiert aus sechs Zeichen."}, {"id": "name_fs20_special", "chapter": "3.6.1 Synchronisation (Regeln)", "q": "Welche Besonderheit gilt laut Handbuch nach „FS20“ in der Namenskonvention?", "options": ["Zwei Bindestriche „--“ gefolgt von einem Unterstrich „_“", "Doppelpunkt \":\"", "Kein Trennzeichen"], "a": 0, "exp": "Achtung im Handbuch: Nach „FS20“ kommen zwei Bindestriche -- gefolgt von einem Unterstrich _."}, {"id": "name_case", "chapter": "3.6.1 Synchronisation (Regeln)", "q": "Spielt Groß-/Kleinschreibung bei der Namenskonvention eine Rolle?", "options": ["Nein", "Ja, alles muss GROSS sein", "Ja, alles muss klein sein"], "a": 0, "exp": "Im Handbuch: Groß-/Kleinschreibung spielt keine Rolle."}, {"id": "name_bdv", "chapter": "3.6.1 Synchronisation (Regeln)", "q": "Was ändert sich bei FS20 ab BDV 80.6.5_05 laut Handbuch?", "options": ["Zonenabkürzung wird durch „DE-“ ersetzt", "Equipmentnummer entfällt", "Kundentext ist nicht mehr erlaubt"], "a": 0, "exp": "Im Handbuch: Bei FS20 ab BDV 80.6.5_05 wird die Zonenabkürzung durch ein DE- ersetzt."}, {"id": "rule_equipment_valid", "chapter": "3.6.1 Synchronisation (Regeln)", "q": "Wann findet laut Handbuch keine Übertragung statt (Equipment-Regel)?", "options": ["Wenn Equipment in SAP Löschkennzeichen (LÖVM/INAKT) hat oder als Verschlusssache klassifiziert ist", "Wenn Kundentext Sonderzeichen enthält", "Wenn iBASync im Hintergrund läuft"], "a": 0, "exp": "Hat ein Equipment ein Löschkennzeichen oder ist als Verschlusssache klassifiziert, findet keine Übertragung statt."}, {"id": "rule_supply_newer", "chapter": "3.6.1 Synchronisation (Regeln)", "q": "Welche Versionsregel zur Versorgung nennt das Handbuch?", "options": ["Die zu synchronisierende Versorgung darf nicht älter sein als die in iBA", "Versorgungen dürfen beliebig alt sein", "Nur „failed“-Dateien werden übertragen"], "a": 0, "exp": "Regel 3: Die Versorgung, die synchronisiert werden soll, darf nicht älter sein als die in iBA."}, {"id": "info_goal", "chapter": "4 Infoelemente/Zusatzkomponenten", "q": "Welches Ziel wird mit dem Anhängen von Infoelementen/Zusatzkomponenten verfolgt?", "options": ["Alle relevanten Informationen erfassen, um Anwendungsfälle im Asset Explorer abzudecken", "Nur Bilder im Asset Explorer anzeigen", "Den Kundentext automatisch aus SAP ersetzen"], "a": 0, "exp": "Ziel ist, alle Informationen der Anlagen zu erfassen, um Anwendungsfälle (MI, Vertragsanpassungen, Migrationen etc.) abzudecken."}, {"id": "info_where_phys", "chapter": "4 Infoelemente/Zusatzkomponenten", "q": "Wo müssen Infoelemente, die zu einem physikalischen Gerät gehören, angelegt werden?", "options": ["In Bestückungsansicht (Plan D100) bzw. Hardware-Baum (FS20)", "Beliebig in jeder Ansicht", "Nur im Asset Explorer"], "a": 0, "exp": "WICHTIG: Alle Infoelemente zu physikalischen Geräten müssen in Bestückungsansicht (Plan D100) bzw. Hardware-Baum (FS20) angelegt werden."}, {"id": "info_cascade_levels", "chapter": "4 Infoelemente/Zusatzkomponenten", "q": "Wie weit können Infoelemente laut Handbuch kaskadiert werden?", "options": ["Maximal in drei Ebenen", "Unbegrenzt", "Maximal in zwei Ebenen"], "a": 0, "exp": "Infoelemente können an jedem Element angelegt und kaskadiert werden (max. in drei Ebenen)."}, {"id": "info_sintesoworks_same", "chapter": "4 Infoelemente/Zusatzkomponenten", "q": "Welche Aussage trifft laut Handbuch zu SintesoWorks ab MP7 zu?", "options": ["Es stehen die gleichen Infoelemente zur Verfügung wie in Plan D100 ab 9.4", "Es gibt keine Infoelemente in SintesoWorks", "Infoelemente sind nur im Asset Explorer pflegbar"], "a": 0, "exp": "Im Handbuch: In SintesoWorks ab MP7 stehen die gleichen Infoelemente zur Verfügung wie in Plan D100 ab 9.4."}, {"id": "fs20_info_types", "chapter": "4 Infoelemente/Zusatzkomponenten", "q": "Welche vier Arten von Infoelementen gibt es in SintesoWorks ab MP7 laut Handbuch?", "options": ["Zusätzliche Komponente, Montageart, Inbetriebnahme-Datum, Austausch-Datum", "Gerät, Batterie, Alarmstrom", "Montageort, Handbereich, Zwischenboden"], "a": 0, "exp": "Im Handbuch werden vier Arten genannt: Zusätzliche Komponente, Montageart, Inbetriebnahme-Datum, Austausch-Datum."}, {"id": "fs20_type_change", "chapter": "4 Infoelemente/Zusatzkomponenten", "q": "Was gilt, wenn in FS20 eine Zusatzkomponente bereits angelegt wurde?", "options": ["Der Typ kann nachträglich nicht mehr verändert werden", "Der Typ kann jederzeit geändert werden", "Der Typ ändert sich automatisch anhand des Kundentextes"], "a": 0, "exp": "Im Handbuch: Wenn eine Zusatzkomponente angelegt wurde, kann der Typ nachträglich nicht mehr verändert werden; löschen und neu anlegen."}, {"id": "fs20_austausch_future", "chapter": "4 Infoelemente/Zusatzkomponenten", "q": "Welche Aussage ist korrekt zum Infoelement „Austauschdatum“ (FS20)?", "options": ["Darf NIEMALS in der Zukunft liegen", "Darf in der Zukunft liegen, wenn geplant", "Gilt nur für FD-Net-Elemente"], "a": 0, "exp": "Im Handbuch: Austauschdatum darf NIEMALS in der Zukunft liegen und nur bei NICHT-FD-Net-Elementen verwendet werden."}, {"id": "plan_change_anytime", "chapter": "4 Infoelemente/Zusatzkomponenten", "q": "Welche Aussage trifft auf Infoelemente in PLAN D100 laut Handbuch zu?", "options": ["Infoelemente können jederzeit verändert werden", "Infoelemente sind nach Anlage nicht mehr änderbar", "Infoelemente müssen immer in Findus bearbeitet werden"], "a": 0, "exp": "Im Abschnitt 4.2: In Plan D100 können Infoelemente jederzeit verändert werden."}, {"id": "plan_max_depth", "chapter": "4 Infoelemente/Zusatzkomponenten", "q": "Wie viele Ebenen unterhalb eines Gerätes dürfen Infoelemente in PLAN D100 maximal angelegt werden?", "options": ["Maximal drei Ebenen", "Maximal fünf Ebenen", "Unbegrenzt"], "a": 0, "exp": "Im Handbuch: Infoelemente dürfen maximal in drei Ebenen unterhalb des Gerätes angelegt werden."}, {"id": "fs20_check_station_fields", "chapter": "5.1 FS20 Checkliste", "q": "Wo sollen bei FS20 laut Checkliste Standort und Station-Equi. eingetragen werden?", "options": ["Station: Übersicht = Standort, Details = Station-Equi.", "Zentraleinstellungen: Kundentext", "Nur im Exportdialog"], "a": 0, "exp": "FS20 Checkliste: Bei der Station unter Übersicht den Standort und unter Details das Station-Equi. eintragen."}, {"id": "fs20_check_hardware_tree", "chapter": "5.1 FS20 Checkliste", "q": "In welchem Bereich sollen viele Infoelemente laut FS20-Checkliste angelegt werden?", "options": ["Im Hardwarebaum (u.a. unter der Station)", "Nur im Steuerbaum", "Nur in Findus"], "a": 0, "exp": "Die Checkliste listet zahlreiche Infoelemente explizit unter „Hardwarebaum“ bzw. „unter der Station“."}, {"id": "fs20_check_zsv_batt", "chapter": "5.1 FS20 Checkliste", "q": "Was wird laut FS20-Checkliste bei Zusatzstromversorgung (ZSV) typischerweise angehängt?", "options": ["ZSV mit Batterien (ggf. E30-Umschrank)", "Nur Montageort Handbereich", "Nur Firmwaredaten"], "a": 0, "exp": "FS20-Checkliste: ZSV mit Batterien (ggf. E30 Umschrank) inkl. Batterien etc."}, {"id": "fs20_check_future_dates", "chapter": "5.1 FS20 Checkliste", "q": "Was sagt die FS20-Checkliste zu Datumseinträgen (Austauschdatum)?", "options": ["Datumseinträge dürfen nicht in der Zukunft liegen", "Zukunftsdaten sind empfohlen", "Datumseinträge werden ignoriert"], "a": 0, "exp": "Checkliste Hinweis Meldertausch: Datumseinträge dürfen nicht in der Zukunft liegen."}, {"id": "fs20_name_mp7_manual", "chapter": "5.3 FS20 Equipmentpflege & Namensvergabe", "q": "Was muss bei FS20-Anlagen aus Marktpaketen < MP7 beachtet werden, wenn sie mit SintesoWorks ab MP7 geändert werden?", "options": ["Namenskonvention muss manuell angepasst und per „Speichern als“ abgespeichert werden", "Namenskonvention wird automatisch ignoriert", "Es ist kein Export zu iBASync möglich"], "a": 0, "exp": "Im Abschnitt 5.3: Für Anlagen < MP7 muss die Namenskonvention manuell angepasst und mit „Speichern als“ abgespeichert werden."}, {"id": "fs20_name_diff_main_equi", "chapter": "5.3 FS20 Equipmentpflege & Namensvergabe", "q": "Welche wichtige Vorgabe nennt das Handbuch für Systeme mit FS20-Gateway oder verschiedenen Anlagentechniken (SIGMASYS + FS20)?", "options": ["In Plan D100 und SintesoWorks unterschiedliche Hauptequipments vergeben", "Immer dasselbe Hauptequipment verwenden", "Hauptequipment ist optional"], "a": 0, "exp": "Wichtig: Bei FS20-Gateway oder mehreren Techniken müssen für Versorgungsnamen in Plan D100 und SintesoWorks unterschiedliche Hauptequipments vergeben werden."}, {"id": "fs20_name_auto_prompt", "chapter": "5.3 FS20 Equipmentpflege & Namensvergabe", "q": "Was passiert am Ende der Versorgung in SintesoWorks ab MP7 laut Handbuch?", "options": ["Die Übertragung nach iBASync wird automatisch nachgefragt", "Die Datei wird automatisch gelöscht", "Es wird automatisch ein Findus-Report erzeugt"], "a": 0, "exp": "Im Abschnitt 5.3: Am Ende der Versorgung wird die Übertragung nach iBASync automatisch nachgefragt."}, {"id": "fs20_network_sub_equi_field", "chapter": "5.3 FS20 Equipmentpflege & Namensvergabe", "q": "Was gilt bei vernetzten Systemen laut Handbuch in Bezug auf Unterequipment pro Zentrale?", "options": ["Unterequipment muss in das Feld Equipment-Nummer im FS20 Hardwarebaum/Zentrale eingetragen werden", "Unterequipment wird nie erfasst", "Unterequipment ersetzt den Dateinamen"], "a": 0, "exp": "Im Abschnitt „Vernetzte Systeme“: Unterequipment pro Zentrale muss in das Feld Equipment-Nummer im FS20 Tool (Hardwarebaum/Zentrale) eingetragen werden."}, {"id": "inherit_basics", "chapter": "5.4 Vererbung (FS20)", "q": "Was beschreibt der Abschnitt 5.4 zur Vererbung in SintesoWorks ab MP7?", "options": ["Einträge können von übergeordneten Elementen geerbt werden", "Vererbung ist in FS20 nicht möglich", "Nur Plan D100 unterstützt Vererbung"], "a": 0, "exp": "Im Gegensatz zu Plan D100 können in FS20 einige Angaben vom darüber liegenden Element geerbt werden."}, {"id": "inherit_object_example", "chapter": "5.4 Vererbung (FS20)", "q": "Welches Beispiel nennt das Handbuch für die Vererbung des IBS-Datums?", "options": ["IBS-Datum am Objekt eintragen → darunter liegende Elemente erben automatisch", "IBS-Datum nur an Meldern möglich", "IBS-Datum wird aus Firmware abgeleitet"], "a": 0, "exp": "Handbuch: Es reicht z. B. zum Eintragen eines IBS-Datums, dieses bei einem Objekt einzutragen; darunter liegende Elemente erben automatisch."}, {"id": "inherit_override", "chapter": "5.4 Vererbung (FS20)", "q": "Was ist zu tun, wenn Daten eines untergeordneten Elements von geerbten Informationen abweichen sollen?", "options": ["Aktiv überschreiben bzw. eigene Infoelemente anlegen", "Nichts – geerbte Werte bleiben zwingend", "Nur in Findus korrigieren"], "a": 0, "exp": "Handbuch: Abweichende Daten sind durch den Techniker aktiv zu überschreiben bzw. mit eigenen Infoelementen zu versehen."}, {"id": "inherit_responsibility", "chapter": "5.4 Vererbung (FS20)", "q": "Welche Aussage zur Verantwortung nennt das Handbuch im Kontext der Vererbung?", "options": ["Techniker ist ausnahmslos verantwortlich – auch für geerbte Informationen", "System ist verantwortlich, sobald vererbt wird", "Nur PIT ist verantwortlich"], "a": 0, "exp": "WICHTIG: Verantwortung für Richtigkeit/Vollständigkeit/Aktualität liegt ausnahmslos beim Techniker – für geerbte und manuell gepflegte Einträge."}, {"id": "inherit_not_example", "chapter": "5.4 Vererbung (FS20)", "q": "Was gilt nicht bei der Vererbungslehre?", "options": ["Die Vererbung ist bis zur Objektebene (Detektion) möglich", "Die Vererbung läuft ab Zentralen- und Linienkartenebene", "Zusatzelement IBS-Datum an MG (Detektion) wird vererbt"], "a": 1, "exp": "Im Handbuch sind Vererbungsprioritäten für IBS-Datum/Montageart beschrieben (u. a. Sensor/MG/Area/Objekt), aber nicht „ab Zentralen- und Linienkartenebene“."}, {"id": "ibs_prio_top", "chapter": "5.4.1 Vererbung Melder/Eingänge", "q": "Welche Priorität hat bei Meldern die Vererbung des IBS-Datums (von hoch nach niedrig) – was steht ganz oben?", "options": ["Austauschdatum an Melder (Hardware)", "IBS-Datum an Objekt (Detektion)", "IBS-Datum an Area (Detektion)"], "a": 0, "exp": "Prioritätenliste: 1. Austauschdatum an Melder (Hardware) steht ganz oben."}, {"id": "ibs_prio_line", "chapter": "5.4.1 Vererbung Melder/Eingänge", "q": "Welche Aussage entspricht der IBS-Datum-Priorität bei Meldern?", "options": ["Austauschdatum an Linie (Hardware, NICHT FD-NET-Linie) steht direkt unter Austauschdatum am Melder", "IBS-Datum am Objekt hat höchste Priorität", "IBS-Datum am Sensor ist niedriger als IBS-Datum am Objekt"], "a": 0, "exp": "Liste: 1. Austauschdatum Melder, 1.1 Austauschdatum Linie (Hardware, NICHT FD-NET-Linie), dann IBS-Datum Infoelemente …"}, {"id": "ibs_prio_mg", "chapter": "5.4.1 Vererbung Melder/Eingänge", "q": "Wo steht „Zusatzelement IBS-Datum an MG (Detektion)“ in der Prioritätsliste?", "options": ["Unter IBS-Datum am Sensor (Detektion) und über IBS-Datum an Area (Detektion)", "Ganz oben", "Ganz unten unter Objekt"], "a": 0, "exp": "Liste: 3 IBS-Datum an Sensor, 4 IBS-Datum an MG, 5 IBS-Datum an Area, 6 IBS-Datum an Objekt."}, {"id": "ibs_prio_bottom", "chapter": "5.4.1 Vererbung Melder/Eingänge", "q": "Welches Element hat in der IBS-Datum-Vererbung bei Meldern die niedrigste Priorität?", "options": ["Zusatzelement IBS-Datum an Objekt (Detektion)", "Austauschdatum an Melder", "Zusatzelement IBS-Datum an Melder"], "a": 0, "exp": "Liste endet mit 6: IBS-Datum an Objekt (Detektion) als niedrigste Priorität."}, {"id": "montage_prio_top", "chapter": "5.4.1 Vererbung Melder/Eingänge", "q": "Welche Priorität hat bei Meldern die Vererbung der Montageart – was steht ganz oben?", "options": ["Montageart an Melder (Hardware)", "Montageart an Linie (Hardware)", "Montageart an Objekt (Detektion)"], "a": 0, "exp": "Montageart-Priorität: 1. Montageart an Melder (Hardware) ist höchste Priorität."}, {"id": "montage_prio_last", "chapter": "5.4.1 Vererbung Melder/Eingänge", "q": "Was hat bei Meldern die niedrigste Priorität für die Montageart?", "options": ["Montageart an Linie (Hardware)", "Montageart an Sensor (Detektion)", "Montageart an Melder (Hardware)"], "a": 0, "exp": "Liste: Montageart an Linie (Hardware) steht als Punkt 6 ganz unten."}, {"id": "montage_endings", "chapter": "5.4.1 Vererbung Melder/Eingänge", "q": "Welche Klartext-Endungen werden laut Handbuch zur Montageart-Auswertung herangezogen?", "options": ["ZD/ZwD, ZB/ZwB, LLM/LKM", "EG/OG/DG", "A1/A2/B1"], "a": 0, "exp": "Handbuch nennt Endungen: ZD/ZwD (Zwischendecke), ZB/ZwB (Zwischenboden), LLM/LKM (Lüftungskanal)."}, {"id": "handfeuermelder_auto", "chapter": "5.4.1 Vererbung Melder/Eingänge", "q": "Welche Aussage trifft laut Handbuch auf Handfeuermelder zu?", "options": ["Sie werden automatisch dem Handbereich zugeordnet und brauchen kein Infoelement dafür", "Sie müssen immer per Infoelement Montageart Handbereich gepflegt werden", "Ihre Montageart wird immer aus dem Kundentext gezogen"], "a": 0, "exp": "Hinweis im Handbuch: Handfeuermelder werden automatisch dem Handbereich zugeordnet."}, {"id": "out_prio_effect", "chapter": "5.4.2 Vererbung Ausgänge/Steuerungen", "q": "Welche Vererbungspriorität gilt bei Steuerungen laut Handbuch (hoch nach niedrig)?", "options": ["Zusatzelement an Effekt (Steuerbaum) hat höchste Priorität", "Zusatzelement an Station (Hardware) hat höchste Priorität", "Zusatzelement an Linienkarte (Hardware) hat höchste Priorität"], "a": 0, "exp": "Handbuch: Priorität bei Steuerungen beginnt mit Zusatzelement an Effekt (Steuerbaum)."}, {"id": "out_prio_station_last", "chapter": "5.4.2 Vererbung Ausgänge/Steuerungen", "q": "Was steht in der Steuerungs-Priorität ganz unten?", "options": ["Zusatzelement an Station (Hardware)", "Zusatzelement an Steuerung (Steuerbaum)", "Zusatzelement an Effekt (Steuerbaum)"], "a": 0, "exp": "Liste endet mit 6: Zusatzelement an Station (Hardware)."}, {"id": "out_prio_mpl", "chapter": "5.4.2 Vererbung Ausgänge/Steuerungen", "q": "Welche Aussage stimmt zur Steuerungs-Priorität?", "options": ["Zusatzelement an MPL (Hardware) liegt über Linienkarte (Hardware)", "Linienkarte liegt über Effekt", "Station liegt über Effekt"], "a": 0, "exp": "Liste: 4 MPL (Hardware), 5 Linienkarte (Hardware)."}, {"id": "zentral_location", "chapter": "5.5 Zentralentechnik & SV", "q": "Wo soll der Standort der Zentrale laut Handbuch eingetragen werden?", "options": ["Im Kundentext der Zentrale", "Im Dateinamen", "In iBASync-Konfigurieren"], "a": 0, "exp": "Im Abschnitt 5.5: Der Standort der Zentrale ist in deren Kundentext einzutragen."}, {"id": "zentral_equipment_each_panel", "chapter": "5.5 Zentralentechnik & SV", "q": "Welche Aussage trifft laut Handbuch zu Panels/Equipmentnummer zu?", "options": ["Je Panel muss eine Equipment Nummer hinterlegt werden", "Eine Equipmentnummer reicht für alle Panels", "Equipmentnummern sind nur optional"], "a": 0, "exp": "Abschnitt 5.5: Je Panel muss eine Equipment Nummer hinterlegt werden."}, {"id": "zentral_ibs_every_station", "chapter": "5.5 Zentralentechnik & SV", "q": "Was ist laut Handbuch beim Inbetriebnahme-Datum besonders wichtig?", "options": ["Explizit bei jeder Station und jedem Bedienfeld pflegen", "Nur einmal im Projekt pflegen", "Wird automatisch aus iBASync importiert"], "a": 0, "exp": "Abschnitt 5.5. „Wichtig“: Inbetriebnahme-Datum ist explizit bei jeder Station und jedem Bedienfeld zu pflegen."}, {"id": "fc2080_sets", "chapter": "5.5 Zentralentechnik & SV", "q": "Wie sind die Stromversorgungs-Sets der FC2080 laut Handbuch aufgebaut?", "options": ["Zwei Ebenen (oben/unten) mit jeweils 300W oder 450W", "Eine Ebene mit 600W", "Drei Ebenen mit je 200W"], "a": 0, "exp": "Handbuch: FC2080 Stromversorgungs-Sets in zwei Ebenen (oben/unten) mit 300W oder 450W."}, {"id": "fc2080_infoelements", "chapter": "5.5 Zentralentechnik & SV", "q": "Welche Infoelemente nennt das Handbuch explizit für FC2080 Stromversorgungen?", "options": ["oben 450W/300W und unten 450W/300W", "nur „Stromversorgung BMZ“", "nur „Zusatz-SV“"], "a": 0, "exp": "Es werden Infoelemente „FC2080 Stromversorgung oben 450W/300W“ sowie „unten 450W/300W“ genannt."}, {"id": "fc2080_batteries", "chapter": "5.5 Zentralentechnik & SV", "q": "Wo sollen bei FC2080 die Batterien angelegt werden, um oben/unten zuzuordnen?", "options": ["Unter den jeweiligen Stromversorgungs-Infoelementen (oben/unten)", "Direkt unter der Station", "Unter dem RS232 Modul"], "a": 0, "exp": "Handbuch: Batterien abweichend von Standard unter diesen Infoelementen anlegen, um Einheit oben/unten zuzuordnen."}, {"id": "fc2080_single_unit", "chapter": "5.5 Zentralentechnik & SV", "q": "Was gilt laut Handbuch, wenn nur eine Stromversorgungseinheit (oben) verbaut ist?", "options": ["Batterien werden dennoch an den Stromversorgungseinheiten angelegt", "Batterien werden direkt an die Station angelegt", "Batterien dürfen nicht erfasst werden"], "a": 0, "exp": "Handbuch: Wenn nur eine Einheit verbaut ist (oben), werden Batterien dennoch an den Stromversorgungseinheiten angelegt."}, {"id": "parallel_psu_fs20", "chapter": "5.5 Zentralentechnik & SV", "q": "Wie werden zwei parallel geschaltete Stromversorgungen (z. B. FS2060) laut Handbuch versorgt?", "options": ["Beide untereinander direkt an die Station; Zusatzinfos an eine SV; Sicherungsdaten an die Station", "Jeweils an unterschiedliche Stationen", "Nur eine SV anlegen und zweite ignorieren"], "a": 0, "exp": "Handbuch 5.5.2: Beide SV direkt an Station; Batterien/Ströme an eine SV; Sicherungsdaten an Station."}, {"id": "gateway_no_cloud", "chapter": "5.6 Gateways (X200/X300/FG2004)", "q": "Was gilt für Gateways ohne Cloudanbindung (nur cRSP) laut Handbuch?", "options": ["Gateway direkt an der Station anlegen, an der es angeschaltet ist", "Gateway immer unter dem Managementsystem anlegen", "Gateway wird nicht im Baum erfasst"], "a": 0, "exp": "Handbuch 5.6.1: Gateway ohne Cloudanbindung direkt an der Station anlegen, an der es angeschaltet ist."}, {"id": "fg2004_location", "chapter": "5.6 Gateways (X200/X300/FG2004)", "q": "Wo wird der Standort des X200/X300 bei Gateway mit Cloudanbindung (FG2004) eingetragen?", "options": ["Im Kundentext (Zentralen-Einstellungen des FG2004)", "Im Dateinamen", "Im Info-Tab von iBASync"], "a": 0, "exp": "Handbuch 5.6.2: Standort des X200/X300 ist in den Kundentext einzutragen (Zentralen-Einstellungen FG2004)."}, {"id": "fg2004_equipment", "chapter": "5.6 Gateways (X200/X300/FG2004)", "q": "Was ist laut Handbuch zusätzlich für X200/X300 und RSG-Box erforderlich?", "options": ["Ein eigenes Equipment (Objektart „CONNECT 00 CONNECT“) in den Einstellungen des FG2004 hinterlegen", "Keine zusätzlichen Angaben", "Nur ein Austauschdatum setzen"], "a": 0, "exp": "Handbuch: Für X200/X300 und RSG-Box muss ein Equipment erzeugt und in FG2004-Einstellungen hinterlegt werden (Objektart „CONNECT 00 CONNECT“)."}, {"id": "fg2004_infoelement", "chapter": "5.6 Gateways (X200/X300/FG2004)", "q": "Welche weitere Maßnahme nennt das Handbuch am FG2004?", "options": ["Ein Infoelement passend zum Gateway-Typ anhängen (z. B. „Cloudgateway X200“)", "Ein Infoelement „Handbereich“ anhängen", "Ein Infoelement „Austauschdatum“ in der Zukunft setzen"], "a": 0, "exp": "Handbuch: Zusätzlich muss am FG2004 ein dem Typ des Gateways entsprechendes Infoelement angehängt werden."}, {"id": "inputs_purpose", "chapter": "5.9 Eingänge (FS20)", "q": "Wozu dienen Infoelemente an Eingängen (Melder/Kontakte) laut Handbuch?", "options": ["Zur genauen Angabe der verwendeten Typen, sofern nicht aus dem Gerät ersichtlich", "Nur zur Steuerungsbeschreibung", "Nur zur Lizenzverwaltung"], "a": 0, "exp": "Handbuch 5.9: Infoelemente an Eingängen dienen der genauen Angabe der verwendeten Typen, sofern diese nicht aus dem angeschlossenen Gerät hervorgehen."}, {"id": "handfeuermelder_mount", "chapter": "5.9 Eingänge (FS20)", "q": "Was gilt für den Montageort von Handfeuermeldern laut Handbuch?", "options": ["Montageort wird grundsätzlich auf „Handbereich“ festgelegt und muss nicht gepflegt werden", "Muss stets auf „Zwischendecke“ gesetzt werden", "Muss in jedem Fall manuell gepflegt werden"], "a": 0, "exp": "Handbuch 5.9: Montageort für Handfeuermelder wird grundsätzlich auf Handbereich festgelegt und muss daher nicht gepflegt werden."}, {"id": "montageabweichend", "chapter": "5.9 Eingänge (FS20)", "q": "Was passiert mit abweichenden Montagearten bei Handfeuermeldern laut Handbuch?", "options": ["Sie werden ignoriert", "Sie überschreiben immer den Handbereich", "Sie führen zu Upload-Fehlern"], "a": 0, "exp": "Handbuch 5.9: Abweichende Montagearten werden ignoriert."}, {"id": "klartext_rules", "chapter": "5.9 Eingänge (FS20)", "q": "Welche Bedingung muss für die Auswertung von Klartext-Endungen gelten?", "options": ["Den Endungen muss ein Leerzeichen vorangehen und sie müssen am Ende stehen", "Endungen können irgendwo im Text stehen", "Groß-/Kleinschreibung muss exakt sein"], "a": 0, "exp": "Handbuch: Voraussetzung ist ein Leerzeichen vor der Endung und die Endung muss am Ende des Klartextes stehen; Groß-/Kleinschreibung ist irrelevant."}, {"id": "grenzwert_99", "chapter": "5.9 Eingänge (FS20)", "q": "Welche Adresse muss der logische Kanal einer Grenzwertmeldelinie (FS20) haben, damit das Prüflistentool sie erkennt?", "options": ["99", "1", "0"], "a": 0, "exp": "Handbuch 5.9.1: logischer Kanal der Grenzwertmeldelinie muss die Adresse „99“ haben."}, {"id": "grenzwert_attach", "chapter": "5.9 Eingänge (FS20)", "q": "Wo müssen beim Auflösen einer Grenzwertmeldelinie die einzelnen Melder angehängt werden?", "options": ["An die Grenzwertmeldelinie (nicht an die Meldegruppe)", "An die Meldegruppe", "An das Objekt in der Detektion"], "a": 0, "exp": "Handbuch 5.9.1: Melder in physikalischer Reihenfolge an die Grenzwertmeldelinie (nicht an die Meldegruppe) anhängen."}, {"id": "tech_contact_one", "chapter": "5.9 Eingänge (FS20)", "q": "Wie viele Infoelemente dürfen laut Handbuch an einen technischen Meldekontakt angehängt werden?", "options": ["Genau eins", "Beliebig viele", "Mindestens zwei"], "a": 0, "exp": "Handbuch 5.9.2: An Meldekontakte darf nur ein Infoelement angehängt werden."}, {"id": "asd_one_infoelement", "chapter": "5.9 Eingänge (FS20)", "q": "Warum darf bei ASD (Rauchansaugsystem) laut Handbuch nur ein Infoelement angehängt werden?", "options": ["Damit ASD nicht mehrfach gezählt wird", "Weil ASD nur einen Kontakt hat", "Weil iBASync sonst nicht startet"], "a": 0, "exp": "Handbuch 5.9.3: ASD hat oft mehrere Meldekontakte; damit es nicht mehrfach gezählt wird, darf nur ein Infoelement angehängt werden."}, {"id": "asd_grouping", "chapter": "5.9 Eingänge (FS20)", "q": "Wie sollen laut Handbuch alle Meldungen eines ASD versorgt werden?", "options": ["In einer Meldergruppe (Infoalarm, Voralarm, Hauptalarm, Störung)", "In vier getrennten Meldergruppen", "Nur Störung wird versorgt"], "a": 0, "exp": "Handbuch 5.9.3: Alle Meldungen eines ASD sind in einer Meldergruppe zu versorgen."}, {"id": "zsv_contact", "chapter": "5.11 Zusatz-Stromversorgungen", "q": "Welche Aussage trifft laut Handbuch auf jede Stromversorgung (ZSV) zu?", "options": ["Sie verfügt über mindestens einen Störmeldekontakt", "Sie hat nie Störmeldekontakte", "Störmeldekontakte sind optional und nicht auszuwerten"], "a": 0, "exp": "Handbuch 5.11: Jede Stromversorgung verfügt über mindestens einen Störmeldekontakt."}, {"id": "zsv_text", "chapter": "5.11 Zusatz-Stromversorgungen", "q": "Was soll der Klartext des Störmeldekontaktes einer Zusatz-SV enthalten?", "options": ["Eindeutige Beschriftung (z.B. „Stoerung Stromversorgung Hupen 3.OG“) und idealerweise Funktionsbezug", "Nur die Materialnummer", "Nur den Anlagenamen"], "a": 0, "exp": "Handbuch 5.11: Klartext enthält eindeutige Beschriftung; aus Text soll möglichst Funktion erkennbar sein."}, {"id": "zsv_prefer_attach", "chapter": "5.11 Zusatz-Stromversorgungen", "q": "Wo sollen Infoelemente vom Typ „Zusatz-SV“ vorzugsweise angehängt werden?", "options": ["An dem zugehörigen Störmeldekontakt", "Nur an das Objekt in Detektion", "Nur an das Managementsystem"], "a": 0, "exp": "Handbuch 5.11: Zusatz-SV vorzugsweise an zugehörigen Störmeldekontakt anhängen, alternativ unter Zentrale."}, {"id": "zsv_required_geraet", "chapter": "5.11 Zusatz-Stromversorgungen", "q": "Was ist zwingend erforderlich, damit eine Zusatz-SV vom Prüflistentool erkannt wird?", "options": ["Infoelement „Geraet“ mit systemweit eindeutiger Nummer", "Mindestens zwei Batterien", "Montageart Zwischendecke"], "a": 0, "exp": "Hinweis im Handbuch: Ohne Infoelement „Geraet“ wird die Zusatz-SV NICHT erkannt."}, {"id": "zsv_strom_format", "chapter": "5.11 Zusatz-Stromversorgungen", "q": "Wie müssen Stromwerte im Kundentext laut Handbuch eingegeben werden?", "options": ["In mA ohne Einheit und ohne Komma", "In A mit Einheit", "Mit Einheit und Dezimalpunkt"], "a": 0, "exp": "Handbuch 5.11: Stromwerte müssen in mA OHNE Einheit und OHNE Komma eingegeben werden."}, {"id": "zsv_battery_fault", "chapter": "5.11 Zusatz-Stromversorgungen", "q": "Was gilt laut Handbuch, wenn die Zusatz-SV einen separaten Batteriestörungskontakt hat?", "options": ["Komponente „Geraet“ der Zusatz-SV kopieren und ohne weitere Komponenten an den Eingang anhängen", "Zusatz-SV doppelt anlegen", "Batteriestörung ignorieren"], "a": 0, "exp": "Handbuch 5.11: Bei separatem Batteriestörungskontakt „Geraet“ kopieren und ohne weitere Komponenten anhängen; keine weitere Zusatz-SV an Batteriestörungseingang."}];
+const CHAPTERS = ["Alle Kapitel", "3 iBASync", "3.6.1 Synchronisation (Regeln)", "4 Infoelemente/Zusatzkomponenten", "5.1 FS20 Checkliste", "5.11 Zusatz-Stromversorgungen", "5.3 FS20 Equipmentpflege & Namensvergabe", "5.4 Vererbung (FS20)", "5.4.1 Vererbung Melder/Eingänge", "5.4.2 Vererbung Ausgänge/Steuerungen", "5.5 Zentralentechnik & SV", "5.6 Gateways (X200/X300/FG2004)", "5.9 Eingänge (FS20)"];
+const $ = (id)=>document.getElementById(id);
+function pickOne(arr){return arr[Math.floor(Math.random()*arr.length)]}
+
+function isTocQuestion(q){
+  if(!q || !q.q) return false;
+  const t = q.q.toLowerCase();
+  return t.startsWith('in welchem kapitel')
+      || t.startsWith('welches kapitel')
+      || t.includes('inhaltsverzeichnis');
+}
+
+
+function shuffleOptions(options, correctIndex) {
+  const arr = options.map((text, idx) => ({ text, isCorrect: idx === correctIndex }));
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return {
+    options: arr.map(o => o.text),
+    correctIndex: arr.findIndex(o => o.isCorrect)
+  };
+}
+function esc(s){return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')}
+function getMode(){return document.querySelector('input[name="mode"]:checked').value;}
+
+let chapterKey = CHAPTERS[0];
+const sel = $('chapterSelect');
+function populateChapters(){
+  sel.innerHTML='';
+  CHAPTERS.forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;sel.appendChild(o);});
+  sel.value=chapterKey;
+}
+populateChapters();
+
+function questionsForChapter(){
+  return chapterKey==='Alle Kapitel' ? BANK : BANK.filter(q=>q.chapter===chapterKey);
+}
+
+sel.addEventListener('change', ()=>{chapterKey=sel.value;loadGlobal();});
+
+function LS(){
+  const safe = chapterKey.replace(/\s+/g,'_').replace(/[^A-Za-z0-9_\-]/g,'');
+  return {
+    gCorrect:`aequiz_${safe}_gCorrect`,
+    gWrong:`aequiz_${safe}_gWrong`,
+    gBest:`aequiz_${safe}_gBest`,
+    gSessions:`aequiz_${safe}_gSessions`,
+    gLast:`aequiz_${safe}_gLast`,
+    weights:`aequiz_${safe}_weights`
+  };
+}
+function loadInt(k,d=0){const v=localStorage.getItem(k);return v===null?d:Number(v)||0;}
+function saveInt(k,v){localStorage.setItem(k,String(v));}
+function loadObj(k){try{return JSON.parse(localStorage.getItem(k)||'{}')||{};}catch(e){return {};}}
+function saveObj(k,o){localStorage.setItem(k, JSON.stringify(o));}
+
+let gStats={correct:0,wrong:0,best:0,sessions:0,last:'–'};
+let weights={};
+
+function renderChapterInfo(){
+  const list = questionsForChapter();
+  $('chapterInfo').textContent = `Aktuell: ${chapterKey} — Fragen im Pool: ${list.length}`;
+  $('pChapter').style.display = $('showChapter').checked ? 'inline-block' : 'none';
+}
+
+function renderGlobal(){
+  $('gCorrect').textContent=gStats.correct;
+  $('gWrong').textContent=gStats.wrong;
+  $('gBest').textContent=gStats.best;
+  $('gSessions').textContent=gStats.sessions;
+  $('gLast').textContent=gStats.last;
+  renderChapterInfo();
+}
+
+function loadGlobal(){
+  const ls=LS();
+  gStats={
+    correct:loadInt(ls.gCorrect),
+    wrong:loadInt(ls.gWrong),
+    best:loadInt(ls.gBest),
+    sessions:loadInt(ls.gSessions),
+    last:localStorage.getItem(ls.gLast)||'–'
+  };
+  weights=loadObj(ls.weights);
+  renderGlobal();
+}
+
+function resetAllStats(){
+  const ls=LS();
+  Object.values(ls).forEach(k=>localStorage.removeItem(k));
+  loadGlobal();
+  alert('Gesamtstatistik für dieses Kapitel gelöscht.');
+}
+
+loadGlobal();
+
+let session=null;
+
+function show(screen){
+  ['screenStart','screenQuiz','screenEnd'].forEach(id=>document.getElementById(id)?.classList.add('hidden'));
+  document.getElementById(screen)?.classList.remove('hidden');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  show('screenStart');
+});
+
+
+function weightedPick(items, weights){
+  let total=0; for(const it of items){ total += (weights[it.id]||1); }
+  let r=Math.random()*total;
+  for(const it of items){ r -= (weights[it.id]||1); if(r<=0) return it; }
+  return items[items.length-1];
+}
+
+function startGame(n){
+  const pool = questionsForChapter();
+  if(pool.length<3){alert('Zu wenige Fragen im Pool.');return;}
+
+  const mode=getMode();
+  session={total:n,idx:0,correct:0,wrong:0,streak:0,best:0,mode,adaptive:$('adaptive').checked,answers:[],remaining:[...pool]};
+
+  const ls=LS();
+  gStats.sessions += 1; saveInt(ls.gSessions,gStats.sessions);
+  renderGlobal();
+
+  $('modeHint').textContent = mode==='exam'
+    ? 'Prüfungsmodus: Lösung erst in der Auswertung.'
+    : (session.adaptive ? 'Lernmodus (adaptiv): Fehler werden häufiger abgefragt.' : 'Lernmodus: Sofortiges Feedback.');
+
+  show('screenQuiz');
+  nextQuestion();
+}
+
+function resetSession(){session=null; $('sCorrect').textContent='0'; $('sWrong').textContent='0'; $('sStreak').textContent='0'; alert('Session zurückgesetzt.');}
+
+function nextQuestion(){
+  if(!session) return;
+  if(session.idx>=session.total){ endGame(false); return; }
+  session.idx += 1;
+
+  $('btnNext').disabled=true;
+  const fb=$('feedback'); fb.style.display='none'; fb.className='fb'; fb.innerHTML='';
+  $('options').innerHTML='';
+
+  const pool = questionsForChapter().filter(q => !isTocQuestion(q));
+  if(pool.length===0){ endGame(false); return; }
+  const q = session.adaptive ? weightedPick(pool, weights) : pool[Math.floor(Math.random()*pool.length)];
+  session.remaining = session.remaining.filter(item => item.id !== q.id);
+  // Antworten mischen (damit 'a' nicht immer dieselbe Position bedeutet)
+ const shuffled = shuffleOptions(q.options, q.a);
+ session.current = { ...q, options: shuffled.options, a: shuffled.correctIndex };
+
+
+  $('progress').textContent = `Frage ${session.idx} von ${session.total}`;
+  $('pChapter').textContent = `Kapitel: ${q.chapter}`;
+  $('pChapter').style.display = $('showChapter').checked ? 'inline-block' : 'none';
+
+  $('question').innerHTML = `<h2 style="margin:10px 0 0">${esc(q.q)}</h2>`;
+
+  session.current.options.forEach((opt,i)=>{
+    const d=document.createElement('div');
+    d.className='opt';
+    d.textContent=opt;
+    d.onclick=()=>answer(i);
+    $('options').appendChild(d);
+  });
+
+  if(session.mode==='learn'){
+  $('sCorrect').textContent=session.correct;
+  $('sWrong').textContent=session.wrong;
+  $('sStreak').textContent=session.streak;
+}
+}
+
+const GOOD=['✅ Treffer!','✅ Passt!','✅ Genau so!'];
+const BAD=['❌ Nicht ganz.','❌ Falsch – merk dir das.', '❌ Leider nein.'];
+
+function answer(i){
+  if(!session || session.locked) return;
+  session.locked=true;
+  document.querySelectorAll('.opt').forEach(x=>x.classList.add('disabled'));
+
+  const q=session.current;
+  const ok = i===q.a;
+  if(ok){session.correct++; session.streak++; session.best=Math.max(session.best, session.streak);} else {session.wrong++; session.streak=0;}
+
+  const ls=LS();
+  if(ok){gStats.correct++; saveInt(ls.gCorrect,gStats.correct);} else {gStats.wrong++; saveInt(ls.gWrong,gStats.wrong);}
+  gStats.best=Math.max(gStats.best, session.best); saveInt(ls.gBest,gStats.best);
+
+  if(session.adaptive){
+    const w=weights[q.id]||1;
+    weights[q.id] = ok ? Math.max(1, w-0.2) : Math.min(12, w+1.2);
+    saveObj(ls.weights, weights);
+  }
+
+  renderGlobal();
+
+  session.answers.push({idx:session.idx, chapter:q.chapter, q:q.q, chosen:q.options[i], correct:q.options[q.a], ok, exp:q.exp});
+
+  if(session.mode==='learn'){
+  $('sCorrect').textContent=session.correct;
+  $('sWrong').textContent=session.wrong;
+  $('sStreak').textContent=session.streak;
+}
+
+  $('btnNext').disabled=false;
+
+  const fb=$('feedback');
+  fb.className='fb '+(ok?'good':'bad');
+  fb.style.display='block';
+
+  if(session.mode==='learn'){
+    const lead = ok ? pickOne(GOOD) : pickOne(BAD);
+    const cor = ok ? '' : `<br>Richtig: <b>${esc(q.options[q.a])}</b>`;
+    fb.innerHTML = `${lead}${cor}<br><span class="small">${esc(q.exp)}</span><br><span class="small"><em>(Bilddarstellung in interner Umgebung deaktiviert)</em></span>`;
+  } else {
+    fb.innerHTML = ok ? '✅ Antwort gespeichert.' : '❌ Antwort gespeichert.';
+  }
+
+  session.locked=false;
+}
+
+$('btnNext').addEventListener('click', ()=>nextQuestion());
+
+function endGame(early){
+  if(!session) return;
+  const ls=LS();
+  gStats.last = session.correct + '/' + session.total + ' (' + (session.mode==='exam'?'Prüfung':'Lernen') + ')';
+  localStorage.setItem(ls.gLast, gStats.last);
+  renderGlobal();
+
+  show('screenEnd');
+  $('summary').innerHTML = (early?'Spiel beendet. ':'') + `Richtig: <b>${session.correct}</b> von <b>${session.total}</b> — Falsch: <b>${session.wrong}</b> — Beste Serie: <b>${session.best}</b>`;
+
+  const rev=$('review');
+  rev.innerHTML = `<h3 style="margin:18px 0 8px">Review</h3><p class="small">Im Prüfungsmodus siehst du hier die Auflösung inkl. Merksatz.</p>`;
+
+  session.answers.forEach(a=>{
+    const div=document.createElement('div'); div.className='item';
+    div.innerHTML = `<div>${a.ok?'✅':'❌'} Frage ${a.idx} <span class="pill chapter review">${esc(a.chapter)}</span> ${esc(a.q)}</div>
+      <div class="small">Deine Antwort: <b>${esc(a.chosen)}</b></div>
+      <div class="small">Richtig: <b>${esc(a.correct)}</b></div>
+      <div class="small">${esc(a.exp)}</div>`;
+    rev.appendChild(div);
+  });
+
+  session=null;
+}
+
+function backToStart(){ $('review').innerHTML=''; show('screenStart'); }
+
+window.startGame=startGame; window.resetAllStats=resetAllStats; window.resetSession=resetSession; window.backToStart=backToStart;
+</script>
+</body>
+</html>
